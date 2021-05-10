@@ -21,20 +21,22 @@ class DoctorInfo(Base):
     def get_doctor_info(self, url):
         html = self.get_one_page(url)
         doc = etree.HTML(html)
+        p = lambda x: ''.join(doc.xpath(x)).strip()
         self.data['_id'] = url
-        self.data['hospital'] = ''.join(doc.xpath('//*[@id="g-breadcrumb"]/a[4]/text()')).strip()
-        self.data['department'] = ''.join(doc.xpath('//*[@id="g-breadcrumb"]/a[5]/text()')).strip()
-        self.data['name'] = ''.join(doc.xpath('//*[@id="g-cfg"]/div[2]/div/div[1]/div[2]/h1/strong/text()')).strip()
-        self.data['title'] = ''.join(doc.xpath('//*[@id="g-cfg"]/div[2]/div/div[1]/div[2]/h1/span/text()')).strip()
-        self.data['keywords'] = ''.join(doc.xpath('//*[@id="g-cfg"]//div[@class="keys"]/a/text()')).strip()
-        self.data['good_at'] = ''.join(doc.xpath('//*[@id="expertFeature"]/@value')).strip()
-        self.data['intro'] = ''.join(doc.xpath('//*[@id="g-cfg"]//div[@class="about"]/span/p/text()')).strip()
+        self.data['hospital'] = p('//*[@id="g-breadcrumb"]/a[4]/text()')
+        self.data['department'] = p('//*[@id="g-breadcrumb"]/a[5]/text()')
+        self.data['name'] = p('//*[@id="g-cfg"]/div[2]/div/div[1]/div[2]/h1/strong/text()')
+        self.data['title'] = p('//*[@id="g-cfg"]/div[2]/div/div[1]/div[2]/h1/span/text()')
+        self.data['keywords'] = p('//*[@id="g-cfg"]//div[@class="keys"]/a/text()')
+        self.data['good_at'] = p('//*[@id="expertFeature"]/@value')
+        self.data['intro'] = p('//*[@id="g-cfg"]//div[@class="about"]/span/p/text()')
         self.data['visit_departments'] = [''.join(item.xpath('.//text()')).strip() for item in
                                           doc.xpath('//*[@id="card-hospital"]/div/p')]
 
     def start(self):
         for data in self.load_link_from_mongo():
             self.get_doctor_info(data['_id'])
+            self.add_update_time()
             self.save_to_mongo(self.weiyi_doctor)
             self.remove_link_from_mongo(data)
             time.sleep(1)

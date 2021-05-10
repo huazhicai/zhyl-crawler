@@ -73,9 +73,9 @@ class DepartmentInfo(Base):
     def start(self):
         for data in self.load_link_from_mongo():
             self.get_department_info(data['_id'])
+            self.add_update_time()
             self.save_to_mongo(self.weiyi_department)
             self.remove_link_from_mongo(data)
-            time.sleep(1)
 
 
 if __name__ == '__main__':

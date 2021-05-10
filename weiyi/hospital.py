@@ -7,11 +7,13 @@ from urllib.parse import quote
 from pymongo import MongoClient
 from fake_useragent import UserAgent
 import time
-
+from datetime import datetime
+from utils.logger import getLogger
 from weiyi.config.config import MONGO_HOST, MONGO_DB
 
 ua = UserAgent()
 HEADERS = {'User-Agent': ua.random}
+logger = getLogger('hospital')
 
 
 class Base(object):
@@ -39,15 +41,21 @@ class Base(object):
     def init(self):
         pass
 
+    def add_update_time(self):
+        now = datetime.now()
+        update_time = now.strftime('%Y-%m-%d %H:%M:%S')
+        self.data['update_time'] = update_time
+
     def get_one_page(self, url):
         try:
+            time.sleep(1)  # 减缓爬取速度，防止ip
+            logger.debug(url)
             response = requests.get(url, headers=HEADERS)
             if response.status_code == 200:
                 return response.text
             return None
         except RequestException as e:
             print(e)
-            return None
 
     def save_to_mongo(self, collection):
         try:
@@ -115,7 +123,6 @@ class HospitalLinkCache(Base):
                 for link in self.get_hospital_link(index_url):
                     self.data['_id'] = link
                     self.save_to_mongo(self.hospital_link_cache)
-                time.sleep(1)  # 减慢速度防止ip被封
 
 
 class HospitalInfo(Base):
@@ -144,20 +151,16 @@ class HospitalInfo(Base):
         html = self.get_one_page(url)
         doc = etree.HTML(html)
         self.get_departments(doc)
-        self.data['hospital'] = ''.join(
-            doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/h1/strong/a/text()')).strip()
-        self.data['province'] = ''.join(doc.xpath('//*[@id="g-breadcrumb"]/a[2]/text()')).strip()
-        self.data['city'] = ''.join(doc.xpath('//*[@id="g-breadcrumb"]/a[3]/text()')).strip()
-        self.data['class'] = ''.join(
-            doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/h1/h3[1]/span/text()')).strip()
-        self.data['address'] = ''.join(
-            doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[1]/span/text()')).strip()
-        self.data['phone'] = ''.join(
-            doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[2]/span/text()')).strip()
-        intro_link = ''.join(doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[3]/span/a/@href')).strip()
+        p = lambda x: ''.join(doc.xpath(x)).strip()
+        self.data['hospital'] = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/h1/strong/a/text()')
+        self.data['province'] = p('//*[@id="g-breadcrumb"]/a[2]/text()')
+        self.data['city'] = p('//*[@id="g-breadcrumb"]/a[3]/text()')
+        self.data['class'] = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/h1/h3[1]/span/text()')
+        self.data['address'] = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[1]/span/text()')
+        self.data['phone'] = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[2]/span/text()')
+        intro_link = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[3]/span/a/@href')
         if not intro_link:
-            self.data['introduction'] = ''.join(
-                doc.xpath('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[3]/span/text()')).strip()
+            self.data['introduction'] = p('//*[@id="g-cfg"]/div[2]/section/div[1]/div[2]/div[3]/span/text()')
         else:
             self.data['introduction'] = self.get_hospital_introduction(intro_link)
 
@@ -182,9 +185,9 @@ class HospitalInfo(Base):
         for data in self.load_hospital_link_from_mongo():
             self.data.update(data)
             self.get_hospital_info(data['_id'])
+            self.add_update_time()
             self.save_to_mongo(self.weiyi_hospital)
             self.remove_hospital_link_from_mongo(data)
-            time.sleep(1)  # 减慢速度防止ip被封
 
 
 if __name__ == '__main__':
