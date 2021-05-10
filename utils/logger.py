@@ -14,7 +14,7 @@ logging.config.dictConfig({
         },
         'simple': {
             # 'format': '%(levelname)s %(message)s'
-            'format': '[%(name)s:%(lineno)s] %(levelname)s  %(message)s'
+            'format': '[%(name)s] %(levelname)s  %(message)s'
         },
         'error_format': {
             'format': '[%(name)s:%(lineno)s] %(levelname)s  %(message)s'
@@ -34,9 +34,9 @@ logging.config.dictConfig({
             'formatter': 'verbose'
         },
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
             # 'formatter': 'simple',
             'stream': 'ext://sys.stdout',
         },
