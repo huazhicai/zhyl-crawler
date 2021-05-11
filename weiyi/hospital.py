@@ -106,7 +106,7 @@ class HospitalLinkCache(Base):
         doc = etree.HTML(html)
         hospital_total = doc.xpath('//*[@id="J_ResultNum"]/text()')
         if not hospital_total: 
-            logger.waring(f'get total pages error: {url}')
+            logger.warning(f'get total pages error: {url}')
             pages = 1
         else:
             pages = ceil(eval(hospital_total[0]) / 10)
