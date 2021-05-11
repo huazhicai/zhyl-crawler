@@ -29,8 +29,7 @@ logging.config.dictConfig({
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 30,
             'delay': True,
-            'filename': os.path.join(os.path.dirname(__file__), 'log/project_log.txt'),
-
+            'filename': 'run.log',
             'formatter': 'verbose'
         },
         'console': {

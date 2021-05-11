@@ -105,9 +105,9 @@ class HospitalLinkCache(Base):
         html = self.get_one_page(url)
         doc = etree.HTML(html)
         hospital_total = doc.xpath('//*[@id="J_ResultNum"]/text()')
-        if not hospital_total: 
+        if not hospital_total:
             logger.warning(f'get total pages error: {url}')
-            pages = 1
+            pages = 0   # 某个地区无医院，如神农架
         else:
             pages = ceil(eval(hospital_total[0]) / 10)
         return pages
