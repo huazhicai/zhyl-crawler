@@ -53,9 +53,11 @@ class Base(object):
             response = requests.get(url, headers=HEADERS)
             if response.status_code == 200:
                 return response.text
-            return None
+            logger.warning(f'error{url}, {response.status_code}')
+            return ''
         except RequestException as e:
-            print(e)
+            logger.warning(e)
+            return ''
 
     def save_to_mongo(self, collection):
         try:
@@ -89,7 +91,7 @@ class HospitalLinkCache(Base):
     def get_province_citys(self):
         province_url = self.host + '/json/white/area/provinces'
         provinces = requests.get(province_url)
-        for province in provinces.json():
+        for province in provinces.json()[:-2]:   # 去除香港澳门
             if not province['value'].isdigit(): continue
             citys_url = self.host + '/json/white/area/citys?provinceId={}'.format(province['value'])
             citys = requests.get(citys_url, headers=HEADERS).json()
@@ -103,8 +105,11 @@ class HospitalLinkCache(Base):
         html = self.get_one_page(url)
         doc = etree.HTML(html)
         hospital_total = doc.xpath('//*[@id="J_ResultNum"]/text()')
-        if not hospital_total: raise Exception('get total pages error')
-        pages = ceil(eval(hospital_total[0]) / 10)
+        if not hospital_total: 
+            logger.waring(f'get total pages error: {url}')
+            pages = 1
+        else:
+            pages = ceil(eval(hospital_total[0]) / 10)
         return pages
 
     def get_hospital_link(self, url):
