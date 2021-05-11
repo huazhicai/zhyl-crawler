@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
-from utils.tools import timethis
+import schedule, time, sys, os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from weiyi.department import DepartmentInfo
 from weiyi.doctor import DoctorInfo
 from weiyi.hospital import HospitalLinkCache, HospitalInfo
-import schedule, time
+from utils.tools import timethis
 
 
 @timethis
@@ -19,6 +22,7 @@ def main():
 
 
 if __name__ == '__main__':
+    # main()
     schedule.every().monday.do(main)
     while True:
         schedule.run_pending()

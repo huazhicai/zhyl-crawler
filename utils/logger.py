@@ -34,7 +34,7 @@ logging.config.dictConfig({
             'formatter': 'verbose'
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
             # 'formatter': 'simple',

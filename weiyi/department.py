@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import time
 from lxml import etree
 from weiyi.hospital import Base
 

@@ -40,7 +40,7 @@ def timethis(func):
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
-        print(func.__name__, end - start)
+        print(func.__name__, (end - start)/60)
         return result
 
     return wrapper

@@ -16,7 +16,7 @@ class DoctorInfo(Base):
 
     def remove_link_from_mongo(self, data):
         self.data.clear()
-        self.department_link_cache.delete_one(data)
+        self.doctor_link_cache.delete_one(data)
 
     def get_doctor_info(self, url):
         html = self.get_one_page(url)
@@ -29,7 +29,7 @@ class DoctorInfo(Base):
         self.data['title'] = p('//*[@id="g-cfg"]/div[2]/div/div[1]/div[2]/h1/span/text()')
         self.data['keywords'] = p('//*[@id="g-cfg"]//div[@class="keys"]/a/text()')
         self.data['good_at'] = p('//*[@id="expertFeature"]/@value')
-        self.data['intro'] = p('//*[@id="g-cfg"]//div[@class="about"]/span/p/text()')
+        self.data['introduction'] = p('//*[@id="g-cfg"]//div[@class="about"]/span/p/text()')
         self.data['visit_departments'] = [''.join(item.xpath('.//text()')).strip() for item in
                                           doc.xpath('//*[@id="card-hospital"]/div/p')]
 

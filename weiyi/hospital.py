@@ -49,7 +49,7 @@ class Base(object):
     def get_one_page(self, url):
         try:
             time.sleep(1)  # 减缓爬取速度，防止ip
-            logger.debug(url)
+            # print(url)
             response = requests.get(url, headers=HEADERS)
             if response.status_code == 200:
                 return response.text
@@ -117,6 +117,7 @@ class HospitalLinkCache(Base):
     def start(self):
         if self.has_link_cache():
             return
+        logger.info('Starting!')
         for city_index_url in self.get_province_citys():
             for page in range(1, self.get_total_pages(city_index_url) + 1):
                 index_url = city_index_url + f'/p{page}'
