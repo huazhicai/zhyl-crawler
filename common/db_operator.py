@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
-from utils import logger
-from utils.tools import singleton
+from common import logger
+from common.tools import singleton
 from pymongo import MongoClient
 
 logger = logger.getLogger('db_operator')

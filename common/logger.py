@@ -3,6 +3,7 @@ import logging, os
 import logging.config
 
 output_list = ['file', 'console', 'error_handler']
+file_path = os.path.join(os.path.dirname(__file__), '../run.log')
 
 logging.config.dictConfig({
     'version': 1,
@@ -29,7 +30,7 @@ logging.config.dictConfig({
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 30,
             'delay': True,
-            'filename': 'run.log',
+            'filename': file_path,
             'formatter': 'verbose'
         },
         'console': {
@@ -38,17 +39,17 @@ logging.config.dictConfig({
             'formatter': 'simple',
             # 'formatter': 'simple',
             'stream': 'ext://sys.stdout',
-        },
-        "error_handler": {
-            "class": "logging.StreamHandler",
-            "level": 'ERROR',
-            "formatter": "error_format",
-            "stream": "ext://sys.stderr"
         }
+        # "error_handler": {
+        #     "class": "logging.StreamHandler",
+        #     "level": 'ERROR',
+        #     "formatter": "error_format",
+        #     "stream": "ext://sys.stderr"
+        # }
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file', 'error_handler'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG'
         },
     }
