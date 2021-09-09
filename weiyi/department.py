@@ -28,6 +28,7 @@ class DepartmentInfo(Base):
     def get_index_page_doctor_info(self, url, page=1):
         """更多医生，另一页"""
         html = self.get_one_page(url + f'?pageNo={page}')
+        if not html: return
         doc = etree.HTML(html)
         items = doc.xpath('//*[@id="g-cfg"]//div[@class="list"]/div')
         for item in items:
@@ -51,23 +52,31 @@ class DepartmentInfo(Base):
                                      'title': ''.join(item.xpath('./dl/dt/span/text()')).strip(),
                                      'doctor_link': ''.join(item.xpath('./dl/dt/a/@href')).strip(),
                                      'good_at': ''.join(item.xpath('./dl/dd/p/text()')).strip(), })
+                self.doctor_links.append(''.join(item.xpath('./dl/dt/a/@href')).strip())
         else:
             self.get_index_page_doctor_info(url)
         self.data['doctors'] = self.doctors
 
     def get_department_info(self, url):
         html = self.get_one_page(url)
+        if not html: return
         doc = etree.HTML(html)
         self.data['_id'] = url
         self.data['department'] = ''.join(
             doc.xpath('//*[@id="g-cfg"]/div[1]/div[2]/div/div[1]/div/h1/strong/text()')).strip()
-        introduction = doc.xpath('//*[@id="g-cfg"]/div[1]/div[2]/div/div[1]/div/div[2]/span/a/text()')
+        introduction = doc.xpath('//*[@id="g-cfg"]//div[@class="desc"]/span/a/@data-description')
         self.get_doctor_info(doc)
         if not introduction:
             self.data['introduction'] = ''.join(
-                doc.xpath('//*[@id="g-cfg"]/div[1]/div[2]/div/div[1]/div/div[2]/span/text()')).strip()
+                doc.xpath('//*[@id="g-cfg"]//div[@class="desc"]/span/text()')).strip()
         else:
             self.data['introduction'] = ''.join(introduction).strip()
+
+    def update_one(self, url):
+        self.data['_id'] = url
+        self.get_department_info(url)
+        self.add_update_time()
+        self.save_to_mongo(self.weiyi_department)
 
     def start(self):
         for data in self.load_link_from_mongo():
