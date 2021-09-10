@@ -9,7 +9,9 @@ import requests
 import random
 from hashlib import md5
 from retrying import retry
-from common import csv_reader, has_letter, load_json, write_row_csv
+from common.data_stream import csv_reader, load_json, write_row_csv
+from .utils import has_letter
+
 
 appid = '20210901000932905'
 appkey = 'XBRtzLpsN4fd0iMARa7o'
@@ -48,11 +50,11 @@ def translate(text, from_lang='en', to_lang='zh'):
     result = r.json()
     print(result)
 
-    if result.get('trans_result'):
-        chinese = result.get('trans_result')[0]['dst']
-        write_row_csv(TRANSLATION_FILE, [text, chinese])
-        EN_2_ZH[text] = chinese
-        return chinese
+    # if result.get('trans_result'):
+    #     chinese = result.get('trans_result')[0]['dst']
+    #     write_row_csv(TRANSLATION_FILE, [text, chinese])
+    #     EN_2_ZH[text] = chinese
+    #     return chinese
 
     return text + ' [translate failed]'
 
@@ -72,4 +74,5 @@ def baidu_query(text):
 
 
 if __name__ == '__main__':
-    print(baidu_query('Hello'))
+    # print(baidu_query('Hello'))
+    translate('amyotrophic lateral sclerosis')
