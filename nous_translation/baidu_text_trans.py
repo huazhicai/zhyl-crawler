@@ -10,7 +10,8 @@ import random
 from hashlib import md5
 from retrying import retry
 from common.data_stream import csv_reader, load_json, write_row_csv
-from .utils import has_letter
+from utils import has_letter
+from baidu import translate
 
 
 appid = '20210901000932905'
@@ -36,31 +37,34 @@ salt = random.randint(32768, 65536)
 
 # Build request
 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-TRANSLATION_FILE = 'file/baidu.csv'
+# TRANSLATION_FILE = 'file/baidu.csv'
+TRANSLATION_FILE = 'new/translation.csv'
 EN_2_ZH = {}
 
 
 @retry(stop_max_attempt_number=4, wait_random_min=2000, wait_random_max=6000)
-def translate(text, from_lang='en', to_lang='zh'):
-    sign = make_md5(appid + text + str(salt) + appkey)
-    payload = {'appid': appid, 'q': text, 'from': from_lang, 'to': to_lang, 'salt': salt, 'sign': sign}
+def translate_bak(text, from_lang='en', to_lang='zh'):
+    # sign = make_md5(appid + text + str(salt) + appkey)
+    # payload = {'appid': appid, 'q': text, 'from': from_lang, 'to': to_lang, 'salt': salt, 'sign': sign}
+    #
+    # # Send request
+    # r = requests.post(url, params=payload, headers=headers)
+    # result = r.json()
+    # print(result)
+    result = translate(text)
 
-    # Send request
-    r = requests.post(url, params=payload, headers=headers)
-    result = r.json()
-    print(result)
-
-    # if result.get('trans_result'):
-    #     chinese = result.get('trans_result')[0]['dst']
-    #     write_row_csv(TRANSLATION_FILE, [text, chinese])
-    #     EN_2_ZH[text] = chinese
-    #     return chinese
+    if result:
+        print('result: ', result)
+        chinese = result[-1]
+        write_row_csv(TRANSLATION_FILE, [text, chinese])
+        EN_2_ZH[text] = chinese
+        return chinese
 
     return text + ' [translate failed]'
 
 
 def load_local_translation():
-    for row in csv_reader('file/baidu.csv'):
+    for row in csv_reader(TRANSLATION_FILE):
         EN_2_ZH[row[0].strip().lower()] = row[1]
 
 

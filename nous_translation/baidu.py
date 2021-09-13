@@ -13,13 +13,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from common.tools import timethis
 from utils import has_letter
 
-
 appid = '20210901000932905'  # 濉啓浣犵殑appid
 secretKey = 'XBRtzLpsN4fd0iMARa7o'  # 濉啓浣犵殑瀵嗛挜
 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
 salt = random.randint(32768, 65536)
 NOUNS_Q = Queue()
+FAILED_Q = Queue()
 finish_single = object()
 SRC_FILE = 'new/nouns.csv'
 DEST_FILE = 'new/translation.csv'
@@ -85,27 +85,34 @@ def translate(q, fromLang='en', toLang='zh', domain='medicine'):
 
     if not result.get('trans_result'):
         print(result)
-        NOUNS_Q.put(q)
+        FAILED_Q.put(q)
         return None
     return [val for val in result['trans_result'][0].values()]
+
+
+def thread_executor(Q, executor):
+    all_task = []
+    print(Q.qsize())
+    while not Q.empty():
+        noun = Q.get()
+        if noun is finish_single: break
+        all_task.append(executor.submit(translate, noun))
+
+    for future in as_completed(all_task):
+        row = future.result()
+        if not row: continue
+        print(row)
+        write_row_csv('new/translation.csv', row)
 
 
 @timethis
 def main(thread_num):
     load_nouns()
     with ThreadPoolExecutor(thread_num) as executor:
-        all_task = []
-        print(NOUNS_Q.qsize())
-        while not NOUNS_Q.empty():
-            noun = NOUNS_Q.get()
-            if noun is finish_single: break
-            all_task.append(executor.submit(translate, noun))
+        thread_executor(NOUNS_Q, executor)
 
-        for future in as_completed(all_task):
-            row = future.result()
-            print(row)
-            if row:
-                write_row_csv('new/translation.csv', row)
+        while not FAILED_Q.empty():
+            thread_executor(FAILED_Q, executor)
 
 
 if __name__ == '__main__':
